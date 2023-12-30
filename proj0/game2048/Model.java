@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @author aron502
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -107,18 +107,59 @@ public class Model extends Observable {
      *    and the trailing tile does not.
      * */
     public boolean tilt(Side side) {
-        boolean changed;
-        changed = false;
+        boolean changed = false;
 
-        // TODO: Modify this.board (and perhaps this.score) to account
-        // for the tilt to the Side SIDE. If the board changed, set the
-        // changed local variable to true.
-
+        var size = board.size();
+        board.setViewingPerspective(side);
+        for (int col = 0; col < size; ++ col) {
+            var tup = tiltColumn(col, board);
+            if (tup[1] == 1) {
+                changed = true;
+            }
+            score += tup[0];
+        }
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
         }
         return changed;
+    }
+
+    private static int[] tiltColumn(int col, Board b) {
+        var changed = 0;
+        var bound = b.size() - 1;
+        var columnScore = 0;
+        for (int row = bound - 1; row >= 0; -- row) {
+            var t = b.tile(col, row);
+            if (t == null) {
+                continue;
+            }
+            int toRow = findTile(col, row, bound, b);
+            changed = 1;
+            if (b.move(col, toRow, t)) {
+                bound -= 1;
+                columnScore += t.value() * 2;
+            }
+        }
+        return new int[]{columnScore, changed};
+    }
+
+    private static int findTile(int col, int row, int bound, Board b) {
+        int curValue = b.tile(col, row).value();
+        while (row < bound) {
+            ++ row;
+            var t = b.tile(col, row);
+            if (t == null) {
+                continue;
+            }
+            if (t.value() != curValue) {
+                return row - 1;
+            } else {
+                return row;
+            }
+        }
+        return row;
     }
 
     /** Checks if the game is over and sets the gameOver variable
@@ -137,7 +178,14 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        var size = b.size();
+        for (int col = 0; col < size; ++ col) {
+            for (int row = 0; row < size; ++ row) {
+                if (b.tile(col, row) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -147,7 +195,14 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        var size = b.size();
+        for (int col = 0; col < size; ++ col) {
+            for (int row = 0; row < size; ++ row) {
+                if (b.tile(col, row) != null && b.tile(col, row).value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -158,10 +213,37 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
+        if (emptySpaceExists(b)) {
+            return true;
+        }
+        var size = b.size();
+        for (int col = 0; col < size; ++ col) {
+            for (int row = 0; row < size; ++ row) {
+                if (anyNeighbourEqual(col, row, size, b)) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
+    /**
+     * Return true if any neighbour of tile(col, row) have same value
+     * with tile(col, row).
+     */
+    private static boolean anyNeighbourEqual(int col, int row, int size, Board b) {
+        int[][] xy = {{col - 1, row}, {col + 1, row}, {col, row - 1}, {col, row + 1}};
+        for (var cords : xy) {
+            var x = cords[0];
+            var y = cords[1];
+            if (x >= 0 && x < size && y >= 0 && y < size) {
+                if (b.tile(col, row).value() == b.tile(x, y).value()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
      /** Returns the model as a string, used for debugging. */

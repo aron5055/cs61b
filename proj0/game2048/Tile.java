@@ -36,7 +36,7 @@ public class Tile {
         return next == null ? this : next;
     }
 
-    /** Return a new tile at (ROW, COL) with value VALUE. */
+    /** Return a new tile at (ROW, COL) with value. */
     public static Tile create(int value, int col, int row) {
         return new Tile(value, col, row);
     }
