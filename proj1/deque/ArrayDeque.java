@@ -3,22 +3,14 @@ package deque;
 import java.util.Iterator;
 
 public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
+    private final int DEFAULT_SIZE = 8;
     private T[] items;
     private int head;
     private int tail;
     private int size;
 
-    private final int DEFAULT_SIZE = 8;
-
     public ArrayDeque() {
         items = (T[]) new Object[DEFAULT_SIZE];
-        head = 0;
-        tail = 1;
-        size = 0;
-    }
-
-    public ArrayDeque(int capacity) {
-        items = (T[]) new Object[capacity];
         head = 0;
         tail = 1;
         size = 0;
@@ -29,7 +21,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         checkSize();
         items[head] = item;
         head = nextHead(head);
-        ++ size;
+        ++size;
     }
 
     @Override
@@ -37,7 +29,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         checkSize();
         items[tail] = item;
         tail = nextTail(tail);
-        ++ size;
+        ++size;
     }
 
     @Override
@@ -63,7 +55,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
         head = nextTail(head);
-        -- size;
+        --size;
         return items[head];
     }
 
@@ -74,7 +66,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
         tail = nextHead(tail);
-        -- size;
+        --size;
         return items[tail];
     }
 
@@ -107,41 +99,19 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (size() != o.size()) {
             return false;
         }
-        for (int i = 0; i < size; ++ i) {
-            if (get(i) != o.get(i)) {
+        for (int i = 0; i < size; ++i) {
+            if (get(i).equals(o.get(i))) {
                 return false;
             }
         }
         return true;
     }
 
-    class ArrayDequeIterator implements Iterator<T> {
-        private int start;
-        private int end;
-
-        public ArrayDequeIterator() {
-            start = nextTail(head);
-            end = tail;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return start != end;
-        }
-
-        @Override
-        public T next() {
-            var item = items[start];
-            start = nextTail(start);
-            return item;
-        }
-    }
-
     private void resize(int capacity) {
         var newItems = (T[]) new Object[capacity];
-        for (int i = 0; i < size; ++ i) {
+        for (int i = 0; i < size; ++i) {
             newItems[i + 1] = get(i);
-        };
+        }
         head = 0;
         tail = size + 1;
         items = newItems;
@@ -160,6 +130,28 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             resize(2 * size);
         } else if (size > 4 && size < items.length / 4) {
             resize(items.length / 4);
+        }
+    }
+
+    private class ArrayDequeIterator implements Iterator<T> {
+        private int start;
+        private final int end;
+
+        public ArrayDequeIterator() {
+            start = nextTail(head);
+            end = tail;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return start != end;
+        }
+
+        @Override
+        public T next() {
+            var item = items[start];
+            start = nextTail(start);
+            return item;
         }
     }
 

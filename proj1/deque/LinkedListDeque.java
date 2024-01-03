@@ -3,24 +3,10 @@ package deque;
 import java.util.Iterator;
 import java.util.Optional;
 
-public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
-    private ListNode head;
-    private ListNode tail;
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
+    private final ListNode head;
+    private final ListNode tail;
     private int size = 0;
-
-    class ListNode {
-        private ListNode prev;
-        private T data;
-        private ListNode next;
-
-        public ListNode() {}
-
-        public ListNode(T item) {
-            data = item;
-            prev = null;
-            next = null;
-        }
-    }
 
     public LinkedListDeque() {
         tail = head = new ListNode();
@@ -28,19 +14,18 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         tail.prev = head;
     }
 
-
     @Override
     public void addFirst(T item) {
         var node = new ListNode(item);
-        insertBetween(head, tail, node);
-        ++ size;
+        insertBetween(head, head.next, node);
+        ++size;
     }
 
     @Override
     public void addLast(T item) {
         var node = new ListNode(item);
         insertBetween(tail.prev, tail, node);
-        ++ size;
+        ++size;
     }
 
     @Override
@@ -66,7 +51,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
             deleteBetween(node.prev, node.next);
             var data = node.data;
             clearNode(node);
-            -- size;
+            --size;
             return data;
         }
         return null;
@@ -79,7 +64,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
             deleteBetween(node.prev, node.next);
             var data = node.data;
             clearNode(node);
-            -- size;
+            --size;
             return data;
         }
         return null;
@@ -116,31 +101,12 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         if (other.size() != size) {
             return false;
         }
-        for (int i = 0; i < size; ++ i) {
-            if (this.get(i) != other.get(i)) {
+        for (int i = 0; i < size; ++i) {
+            if (get(i).equals(other.get(i))) {
                 return false;
             }
         }
         return true;
-    }
-
-    class LinkedListIterator implements Iterator<T> {
-        private ListNode p;
-        public LinkedListIterator() {
-            p = head.next;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return p != tail;
-        }
-
-        @Override
-        public T next() {
-            var item = p.data;
-            p = p.next;
-            return item;
-        }
     }
 
     private T getHelper(ListNode node, int index) {
@@ -150,7 +116,6 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         return getHelper(node.next, index - 1);
     }
 
-
     private Optional<ListNode> getNode(int index) {
         if (index >= size || index < 0) {
             return Optional.empty();
@@ -158,12 +123,12 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         ListNode p;
         if (index <= size / 2) {
             p = head;
-            for (int i = 0; i <= index; ++ i) {
+            for (int i = 0; i <= index; ++i) {
                 p = p.next;
             }
         } else {
             p = tail;
-            for (int i = size - index; i > 0; -- i) {
+            for (int i = size - index; i > 0; --i) {
                 p = p.prev;
             }
         }
@@ -185,6 +150,41 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
     private void clearNode(ListNode node) {
         node.prev = null;
         node.next = null;
+    }
+
+    private class ListNode {
+        private ListNode prev;
+        private T data;
+        private ListNode next;
+
+        public ListNode() {
+        }
+
+        public ListNode(T item) {
+            data = item;
+            prev = null;
+            next = null;
+        }
+    }
+
+    private class LinkedListIterator implements Iterator<T> {
+        private ListNode p;
+
+        public LinkedListIterator() {
+            p = head.next;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return p != tail;
+        }
+
+        @Override
+        public T next() {
+            var item = p.data;
+            p = p.next;
+            return item;
+        }
     }
 
 }
