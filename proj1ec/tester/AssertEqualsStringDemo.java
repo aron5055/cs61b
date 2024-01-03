@@ -1,8 +1,10 @@
 package tester;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
 import edu.princeton.cs.introcs.StdRandom;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
 /** Demos the version of assertEquals with a String message. */
 public class AssertEqualsStringDemo {
     @Test
