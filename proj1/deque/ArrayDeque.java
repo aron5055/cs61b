@@ -95,7 +95,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (!(obj instanceof Deque)) {
             return false;
         }
-        var o = (ArrayDeque<T>) obj;
+        var o = (Deque<T>) obj;
         if (size() != o.size()) {
             return false;
         }
@@ -110,10 +110,10 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private void resize(int capacity) {
         var newItems = (T[]) new Object[capacity];
         for (int i = 0; i < size; ++i) {
-            newItems[i + 1] = get(i);
+            newItems[i] = get(i);
         }
-        head = 0;
-        tail = size + 1;
+        head = capacity - 1;
+        tail = size;
         items = newItems;
     }
 
