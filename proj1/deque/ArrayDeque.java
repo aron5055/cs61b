@@ -92,7 +92,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (obj == null) {
             return false;
         }
-        if (this.getClass() != obj.getClass()) {
+        if (!(obj instanceof Deque)) {
             return false;
         }
         var o = (ArrayDeque<T>) obj;
@@ -100,7 +100,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return false;
         }
         for (int i = 0; i < size; ++i) {
-            if (get(i).equals(o.get(i))) {
+            if (!get(i).equals(o.get(i))) {
                 return false;
             }
         }
@@ -137,7 +137,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         private int start;
         private final int end;
 
-        public ArrayDequeIterator() {
+        ArrayDequeIterator() {
             start = nextTail(head);
             end = tail;
         }
