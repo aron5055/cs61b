@@ -2,7 +2,13 @@ package gitlet;
 
 // TODO: any imports you need here
 
-import java.util.Date; // TODO: You'll likely use this in this class
+import org.checkerframework.checker.units.qual.A;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static gitlet.Utils.*;
+import static gitlet.MyUtils.*;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -10,7 +16,7 @@ import java.util.Date; // TODO: You'll likely use this in this class
  *
  *  @author TODO
  */
-public class Commit {
+public class Commit implements Serializable {
     /**
      * TODO: add instance variables here.
      *
@@ -20,7 +26,65 @@ public class Commit {
      */
 
     /** The message of this Commit. */
-    private String message;
+    private final String message;
+    private final Date time;
+    private final ArrayList<String> parents;
+    private final HashMap<String, String> blobs;
+    private final String commitId;
+
 
     /* TODO: fill in the rest of this class. */
+    public Commit() {
+        message = "initial commit";
+        time = new Date(0);
+        parents = null;
+        blobs = null;
+        commitId = sha1(message, time.toString());
+    }
+
+    public Commit(String message, String parentId, HashMap<String, String> blobs) {
+        this.message = message;
+        time = new Date();
+        parents = new ArrayList<>();
+        parents.add(parentId);
+        this.blobs = blobs;
+        commitId = sha1(message, time.toString(), parents, blobs);
+    }
+
+    public void addParent(String parentId) {
+        parents.add(parentId);
+    }
+
+    public String getBlobId(String name) {
+        if (blobs == null) {
+            return null;
+        }
+        return blobs.get(name);
+    }
+
+    public Map<String, String> getBlobs() {
+        return Collections.unmodifiableMap(blobs);
+    }
+
+    public String getCommitId() {
+        return commitId;
+    }
+
+    public String getFirstParentId() {
+        if (parents == null) {
+            return null;
+        }
+        return parents.get(0);
+    }
+
+    public void save() {
+        saveObjects(Repository.OBJECTS_DIR, commitId, this);
+    }
+
+    public String toString() {
+        return "===\n"
+                + "commit " + this.commitId + "\n"
+                + "Date: " + this.time.toString() + "\n"
+                + this.message;
+    }
 }
