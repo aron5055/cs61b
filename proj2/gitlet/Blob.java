@@ -20,6 +20,10 @@ public class Blob implements Serializable {
         return id;
     }
 
+    public String getContent() {
+        return content;
+    }
+
     public void save() {
         saveObjects(Repository.OBJECTS_DIR, id, this);
     }

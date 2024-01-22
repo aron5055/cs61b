@@ -1,10 +1,10 @@
 package gitlet;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 
 import static gitlet.Utils.*;
 
@@ -43,6 +43,18 @@ public class StagingArea implements Serializable {
         for (var name : removed) {
             blobs.remove(name);
         }
+    }
+
+    public List<String> getAdded() {
+        var list =  new ArrayList<>(added.keySet());
+        list.sort(String::compareTo);
+        return list;
+    }
+
+    public List<String> getRemoved() {
+        var list = new ArrayList<>(removed);
+        list.sort(String::compareTo);
+        return list;
     }
 
     public void clear() {

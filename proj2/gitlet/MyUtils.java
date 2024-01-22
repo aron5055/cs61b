@@ -2,7 +2,6 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Arrays;
 
 import static gitlet.Utils.*;
 public class MyUtils {
@@ -26,23 +25,34 @@ public class MyUtils {
         return readObject(Repository.INDEX, StagingArea.class);
     }
 
-    public static String getBranch(String branchName) {
+    public static String getBranchId(String branchName) {
         return readContentsAsString(join(Repository.HEADS_DIR, branchName))
                 .trim();
     }
 
-    public static File objPath(String id) {
-        var subDir = join(Repository.OBJECTS_DIR, id.substring(0, 2));
-        return join(subDir, id.substring(2));
+    public static Commit readCommit(String id) {
+        return readObject(join(Commit.COMMITS_DIR, id), Commit.class);
     }
 
     public static Commit getCurrentCommit() {
-        var id = getBranch(readHead());
-        return readObject(objPath(id), Commit.class);
+        var id = getBranchId(readHead());
+        return readCommit(id);
     }
 
     public static void writeBranch(String branchName, String commitId) {
         writeContents(join(Repository.HEADS_DIR, branchName), commitId + "\n");
+    }
+
+    public static void writeHead(String branchName) {
+        writeContents(Repository.HEAD, "ref: refs/heads/" + branchName + "\n");
+    }
+
+    public static File objectFile(String id) {
+        return join(Repository.OBJECTS_DIR, id.substring(0, 2), id.substring(2));
+    }
+
+    public static Blob readBlob(String id) {
+        return readObject(objectFile(id), Blob.class);
     }
 
     public static void main(String[] args) {

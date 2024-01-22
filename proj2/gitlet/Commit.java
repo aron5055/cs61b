@@ -2,8 +2,7 @@ package gitlet;
 
 // TODO: any imports you need here
 
-import org.checkerframework.checker.units.qual.A;
-
+import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
@@ -32,23 +31,32 @@ public class Commit implements Serializable {
     private final HashMap<String, String> blobs;
     private final String commitId;
 
+    public static final File COMMITS_DIR = join(Repository.OBJECTS_DIR, "commits");
+
 
     /* TODO: fill in the rest of this class. */
     public Commit() {
         message = "initial commit";
         time = new Date(0);
-        parents = null;
-        blobs = null;
+        parents = new ArrayList<>();
+        blobs = new HashMap<>();
         commitId = sha1(message, time.toString());
     }
 
-    public Commit(String message, String parentId, HashMap<String, String> blobs) {
+    public Commit (String message, String parentId, HashMap<String, String> blobs) {
+        this(message, parentId, blobs, null);
+    }
+
+    public Commit(String message, String parentId, HashMap<String, String> blobs, String parent2Id) {
         this.message = message;
         time = new Date();
         parents = new ArrayList<>();
         parents.add(parentId);
+        if (parent2Id != null) {
+            parents.add(parent2Id);
+        }
         this.blobs = blobs;
-        commitId = sha1(message, time.toString(), parents, blobs);
+        commitId = sha1(message, time.toString(), serialize(parents), serialize(blobs));
     }
 
     public void addParent(String parentId) {
@@ -70,21 +78,31 @@ public class Commit implements Serializable {
         return commitId;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     public String getFirstParentId() {
-        if (parents == null) {
+        if (parents.isEmpty()) {
             return null;
         }
         return parents.get(0);
     }
 
     public void save() {
-        saveObjects(Repository.OBJECTS_DIR, commitId, this);
+        writeObject(join(COMMITS_DIR, commitId), this);
     }
 
     public String toString() {
-        return "===\n"
-                + "commit " + this.commitId + "\n"
-                + "Date: " + this.time.toString() + "\n"
-                + this.message;
+        var s = "";
+        s += "===\n";
+        s += "commit " + commitId + "\n";
+        if (parents.size() == 2) {
+            s += "Merge: " + parents.get(0).substring(0, 7) + " "
+                    + parents.get(1).substring(0, 7) + "\n";
+        }
+        s += "Date: " + time + "\n";
+        s += message + "\n";
+        return s;
     }
 }
