@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import static gitlet.Utils.*;
@@ -21,7 +20,6 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     /** The objects directory.(store blobs) */
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
-    public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
     /** The refs directory. */
     public static final File REFS_DIR = join(GITLET_DIR, "refs");
 
@@ -194,13 +192,7 @@ public class Repository {
         var cid = commitId;
         if (commitId.length() == 6) {
             // maybe performance issue
-            var ids = plainFilenamesIn(Commit.COMMITS_DIR);
-            for (var id : ids) {
-                if (id.startsWith(commitId)) {
-                    cid = id;
-                    break;
-                }
-            }
+            cid = getLongId(commitId);
         }
 
         if (join(Commit.COMMITS_DIR, cid).exists()) {
@@ -227,28 +219,13 @@ public class Repository {
             exitWithError("No such branch exists.");
         }
 
-        var stage = getStagingArea();
-        var curCommit = getCurrentCommit();
-        var curBlobs = curCommit.getBlobs();
-        var curFiles = plainFilenamesIn(CWD);
         var commit = readCommit(getBranchId(branchName));
         var branchBlobs = commit.getBlobs();
 
-        for (var name : curFiles) {
-            if (!curBlobs.containsKey(name) && stage.contains(name)) {
-                exitWithError("There is an untracked file in the way; delete it, or add and commit it first.");
-            }
-            if (curBlobs.containsKey(name) && !branchBlobs.containsKey(name)) {
-                restrictedDelete(join(CWD, name));
-            }
-        }
+        deleteFilesNotIn(branchBlobs);
+        writeBlobsToCWD(branchBlobs);
 
-        for (var name : branchBlobs.keySet()) {
-            var blobId = branchBlobs.get(name);
-            var blob = readBlob(blobId);
-            writeContents(join(CWD, name), blob.getContent());
-        }
-
+        var stage = getStagingArea();
         stage.clear();
         stage.save();
         writeHead(branchName);
@@ -272,5 +249,135 @@ public class Repository {
             exitWithError("Cannot remove the current branch.");
         }
         join(HEADS_DIR, fileName).delete();
+    }
+
+    public static void reset(String commitId) {
+        checkInitialized();
+        var cid = commitId;
+        if (commitId.length() == 6) {
+            cid = getLongId(commitId);
+        }
+        if (!join(Commit.COMMITS_DIR, cid).exists()) {
+            exitWithError("No commit with that id exists.");
+        }
+
+        var commit = readCommit(cid);
+        var blobs = commit.getBlobs();
+
+        deleteFilesNotIn(blobs);
+        writeBlobsToCWD(blobs);
+
+        var stage = getStagingArea();
+        stage.clear();
+        stage.save();
+        writeBranch(readHead(), commitId);
+    }
+
+    public static void merge(String branchName) {
+        var curBranch = readHead();
+        if (!join(HEADS_DIR, branchName).exists()) {
+            exitWithError("A branch with that name does not exist.");
+        }
+        if (curBranch.equals(branchName)) {
+            exitWithError("Cannot merge a branch with itself.");
+        }
+
+        var curCommit = getCurrentCommit();
+        var givenCommit = readCommit(getBranchId(branchName));
+        var splitPoint = findSplitPoint(curCommit, givenCommit);
+        var splitId = splitPoint.getCommitId();
+        var curId = curCommit.getCommitId();
+        var givenId = givenCommit.getCommitId();
+        if (splitId.equals(givenId)) {
+            exitWithError("Given branch is an ancestor of the current branch.");
+        }
+        if (splitId.equals(curId)) {
+            writeBranch(curBranch, givenId);
+            exitWithError("Current branch fast-forwarded.");
+        }
+
+
+        var givenBlobs = givenCommit.getBlobs();
+        var curBlobs = curCommit.getBlobs();
+        var splitBlobs = splitPoint.getBlobs();
+        var stage = getStagingArea();
+        var conflicted = false;
+        for (var name : givenBlobs.keySet()) {
+            var givenBlobId = givenBlobs.get(name);
+            var splitBlobId = splitBlobs.get(name);
+            var curBlobId = curBlobs.get(name);
+            if (splitBlobId == null) {
+                if (curBlobId == null) {
+                    checkout(givenId, name);
+                    stage.add(name, givenBlobId);
+                } else if (curBlobId.equals(givenBlobId)) {
+                    continue;
+                } else { // file changed in both but differently
+                    conflicted = true;
+                    writeConflictedFile(name, curBlobId, givenBlobId);
+                }
+            } else if (splitBlobId.equals(curBlobId)) {
+                if (splitBlobId.equals(givenBlobId)) {
+                    continue;
+                } else {
+                    checkout(givenId, name);
+                    stage.add(name, givenBlobId);
+                }
+            } else {
+                if (splitBlobId.equals(givenBlobId)) {
+                    continue;
+                } else if (curBlobId.equals(givenBlobId)) {
+                    continue;
+                } else {
+                    conflicted = true;
+                    writeConflictedFile(name, curBlobId, givenBlobId);
+                }
+            }
+        }
+
+        for (var name : curBlobs.keySet()) {
+            var curBlobId = curBlobs.get(name);
+            var splitBlobId = splitBlobs.get(name);
+            var givenBlobId = givenBlobs.get(name);
+            if (splitBlobId == null) {
+                if (givenBlobId == null) {
+                    continue;
+                } else {
+                    if (curBlobId == null) {
+                        checkout(givenId, name);
+                        stage.add(name, givenBlobId);
+                    } else if (curBlobId.equals(givenBlobId)) {
+                        continue;
+                    } else {
+                        conflicted = true;
+                        writeConflictedFile(name, curBlobId, givenBlobId);
+                    }
+                }
+            } else if (splitBlobId.equals(curBlobId)) {
+                if (splitBlobId.equals(givenBlobId)) {
+                    continue;
+                } else {
+                    checkout(givenId, name);
+                    stage.add(name, givenBlobId);
+                }
+            } else {
+                if (splitBlobId.equals(givenBlobId)) {
+                    continue;
+                } else if (curBlobId.equals(givenBlobId)) {
+                    continue;
+                } else {
+                    conflicted = true;
+                    writeConflictedFile(name, curBlobId, givenBlobId);
+                }
+            }
+        }
+
+        if (conflicted) {
+            exitWithError("Encountered a merge conflict.");
+        }
+
+        stage.save();
+        commit("Merged " + curBranch + " with " + branchName + ".");
+
     }
 }

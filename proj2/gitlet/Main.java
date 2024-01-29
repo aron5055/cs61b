@@ -70,6 +70,14 @@ public class Main {
                 checkOperands(args.length, 2);
                 Repository.rmBranch(args[1]);
                 break;
+            case "reset":
+                checkOperands(args.length, 2);
+                Repository.reset(args[1]);
+                break;
+            case "merge":
+                checkOperands(args.length, 2);
+                Repository.merge(args[1]);
+                break;
             default:
                 invalidCommand();
                 break;

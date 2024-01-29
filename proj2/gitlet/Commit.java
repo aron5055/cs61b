@@ -89,6 +89,22 @@ public class Commit implements Serializable {
         return parents.get(0);
     }
 
+    public ArrayList<String> getAncestors() {
+        var ancestors = new ArrayList<String>();
+        var queue = new LinkedList<String>();
+        queue.add(commitId);
+        while (!queue.isEmpty()) {
+            var curId = queue.poll();
+            ancestors.add(curId);
+            var curCommit = readCommit(curId);
+            var parentId = curCommit.getFirstParentId();
+            if (parentId != null) {
+                queue.add(parentId);
+            }
+        }
+        return ancestors;
+    }
+
     public void save() {
         writeObject(join(COMMITS_DIR, commitId), this);
     }
