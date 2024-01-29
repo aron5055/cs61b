@@ -4,6 +4,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static gitlet.Utils.*;
@@ -30,6 +31,8 @@ public class Commit implements Serializable {
     private final ArrayList<String> parents;
     private final HashMap<String, String> blobs;
     private final String commitId;
+    public static final SimpleDateFormat sdf =
+            new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.getDefault());
 
     public static final File COMMITS_DIR = join(Repository.OBJECTS_DIR, "commits");
 
@@ -43,11 +46,12 @@ public class Commit implements Serializable {
         commitId = sha1(message, time.toString());
     }
 
-    public Commit (String message, String parentId, HashMap<String, String> blobs) {
+    public Commit(String message, String parentId, HashMap<String, String> blobs) {
         this(message, parentId, blobs, null);
     }
 
-    public Commit(String message, String parentId, HashMap<String, String> blobs, String parent2Id) {
+    public Commit(String message, String parentId,
+                  HashMap<String, String> blobs, String parent2Id) {
         this.message = message;
         time = new Date();
         parents = new ArrayList<>();
@@ -117,7 +121,7 @@ public class Commit implements Serializable {
             s += "Merge: " + parents.get(0).substring(0, 7) + " "
                     + parents.get(1).substring(0, 7) + "\n";
         }
-        s += "Date: " + time + "\n";
+        s += "Date: " + sdf.format(time) + "\n";
         s += message + "\n";
         return s;
     }
