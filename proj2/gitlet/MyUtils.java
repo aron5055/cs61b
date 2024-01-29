@@ -2,10 +2,13 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static gitlet.ErrorUtils.exitWithError;
 import static gitlet.Utils.*;
+
 public class MyUtils {
     public static void saveObjects(File dir, String id, Serializable obj) {
         var subDir = join(dir, id.substring(0, 2));
@@ -102,12 +105,32 @@ public class MyUtils {
         return null;
     }
 
-    public static void writeConflictedFile(String name, String blobId1, String blobId2) {
+    public static HashSet<String> getAllFilesIn(Commit ... commits) {
+        var blobs = new HashSet<Map<String, String>>();
+        for (var commit : commits) {
+            blobs.add(commit.getBlobs());
+        }
+        var allFiles = new HashSet<String>();
+        for (var blob : blobs) {
+            allFiles.addAll(blob.keySet());
+        }
+        return allFiles;
+    }
+
+    private static void writeConflictedFile(String name, String blobId1, String blobId2) {
         var content1 = readBlob(blobId1).getContent();
         var content2 = readBlob(blobId2).getContent();
         var content = "<<<<<<< HEAD\n" + content1 + "=======\n" + content2 + ">>>>>>>\n";
         writeContents(join(Repository.CWD, name), content);
 
+    }
+
+    public static void writeConflicts(Set<String> conflicts, Commit commit1, Commit commit2) {
+        for (var name : conflicts) {
+            var blobId1 = commit1.getBlobId(name);
+            var blobId2 = commit2.getBlobId(name);
+            writeConflictedFile(name, blobId1, blobId2);
+        }
     }
 
     public static void main(String[] args) {

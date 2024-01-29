@@ -63,7 +63,7 @@ public class Commit implements Serializable {
 
     public String getBlobId(String name) {
         if (blobs == null) {
-            return null;
+            return "";
         }
         return blobs.get(name);
     }
