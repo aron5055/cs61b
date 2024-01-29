@@ -58,7 +58,7 @@ public class MyUtils {
     }
 
     public static String getLongId(String shortId) {
-        var files = plainFilenamesIn(Repository.OBJECTS_DIR);
+        var files = plainFilenamesIn(Commit.COMMITS_DIR);
         for (var name : files) {
             if (name.startsWith(shortId)) {
                 return name;
@@ -85,7 +85,7 @@ public class MyUtils {
                 exitWithError("There is an untracked file in the way; "
                         + "delete it, or add and commit it first.");
             }
-            if (curBlobs.containsKey(name) && !blobs.containsKey(name)) {
+            if (!blobs.containsKey(name)) {
                 restrictedDelete(join(Repository.CWD, name));
             }
         }

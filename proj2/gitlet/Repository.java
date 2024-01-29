@@ -62,15 +62,14 @@ public class Repository {
         var blobId = blob.getId();
         var stage = getStagingArea();
         var oldBlobId = commit.getBlobId(fileName);
-        if (oldBlobId != null && oldBlobId.equals(blobId) || stage.contains(fileName)) {
-            stage.removeFromAdded(fileName);
+        if (blobId.equals(oldBlobId)) {
+            stage.delete(fileName);
         } else {
             blob.save();
             stage.add(fileName, blobId);
         }
 
         stage.save();
-
     }
 
     public static void commit(String message) {

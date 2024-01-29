@@ -38,6 +38,11 @@ public class StagingArea implements Serializable {
         added.remove(name);
     }
 
+    public void delete(String name) {
+        added.remove(name);
+        removed.remove(name);
+    }
+
     public boolean containsInRemoved(String name) {
         return removed.contains(name);
     }
