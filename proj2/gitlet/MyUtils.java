@@ -78,10 +78,9 @@ public class MyUtils {
 
     public static void deleteFilesNotIn(Map<String, String> blobs) {
         var stage = getStagingArea();
-        var curBlobs = getCurrentCommit().getBlobs();
         var curFiles = plainFilenamesIn(Repository.CWD);
         for (var name : curFiles) {
-            if (!curBlobs.containsKey(name) && stage.contains(name)) {
+            if (!blobs.containsKey(name) && !stage.contains(name)) {
                 exitWithError("There is an untracked file in the way; "
                         + "delete it, or add and commit it first.");
             }
