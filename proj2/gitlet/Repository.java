@@ -8,10 +8,9 @@ import static gitlet.ErrorUtils.*;
 import static gitlet.MyUtils.*;
 
 /** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Aron
  */
 public class Repository {
     /** The current working directory. */
@@ -30,6 +29,8 @@ public class Repository {
     public static final File INDEX = join(GITLET_DIR, "index");
 
     public static final String MASTER = "master";
+
+    private static final int LONG_ID_LENGTH = 40;
 
 
     public static void init() {
@@ -61,7 +62,7 @@ public class Repository {
         var blobId = blob.getId();
         var stage = getStagingArea();
         var oldBlobId = commit.getBlobId(fileName);
-        if (oldBlobId != null && oldBlobId.equals(blobId)) {
+        if (oldBlobId.equals(blobId) || stage.contains(fileName)) {
             stage.removeFromAdded(fileName);
         } else {
             blob.save();
@@ -104,8 +105,7 @@ public class Repository {
             exitWithError("No reason to remove the file.");
         } else if (blobId != null) {
             stage.rm(fileName);
-            var file = join(CWD, fileName);
-            restrictedDelete(file);
+            restrictedDelete(join(CWD, fileName));
         } else {
             stage.removeFromAdded(fileName);
         }
@@ -190,7 +190,7 @@ public class Repository {
         checkInitialized();
 
         var cid = commitId;
-        if (commitId.length() == 6) {
+        if (commitId.length() < LONG_ID_LENGTH) {
             // maybe performance issue
             cid = getLongId(commitId);
         }
@@ -254,7 +254,7 @@ public class Repository {
     public static void reset(String commitId) {
         checkInitialized();
         var cid = commitId;
-        if (commitId.length() == 6) {
+        if (commitId.length() < LONG_ID_LENGTH) {
             cid = getLongId(commitId);
         }
         if (!join(Commit.COMMITS_DIR, cid).exists()) {

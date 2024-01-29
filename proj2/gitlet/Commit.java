@@ -1,7 +1,5 @@
 package gitlet;
 
-// TODO: any imports you need here
-
 import java.io.File;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -11,15 +9,12 @@ import static gitlet.Utils.*;
 import static gitlet.MyUtils.*;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Aron
  */
 public class Commit implements Serializable {
     /**
-     * TODO: add instance variables here.
-     *
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided one example for `message`.
@@ -31,13 +26,12 @@ public class Commit implements Serializable {
     private final ArrayList<String> parents;
     private final HashMap<String, String> blobs;
     private final String commitId;
-    public static final SimpleDateFormat sdf =
+    public static final SimpleDateFormat SDF =
             new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.getDefault());
 
     public static final File COMMITS_DIR = join(Repository.OBJECTS_DIR, "commits");
 
 
-    /* TODO: fill in the rest of this class. */
     public Commit() {
         message = "initial commit";
         time = new Date(0);
@@ -121,7 +115,7 @@ public class Commit implements Serializable {
             s += "Merge: " + parents.get(0).substring(0, 7) + " "
                     + parents.get(1).substring(0, 7) + "\n";
         }
-        s += "Date: " + sdf.format(time) + "\n";
+        s += "Date: " + SDF.format(time) + "\n";
         s += message + "\n";
         return s;
     }

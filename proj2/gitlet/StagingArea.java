@@ -38,6 +38,10 @@ public class StagingArea implements Serializable {
         added.remove(name);
     }
 
+    public boolean containsInRemoved(String name) {
+        return removed.contains(name);
+    }
+
     public void applyChangesTo(HashMap<String, String> blobs) {
         blobs.putAll(added);
         for (var name : removed) {

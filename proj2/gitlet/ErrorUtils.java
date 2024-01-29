@@ -1,5 +1,7 @@
 package gitlet;
 
+import static gitlet.Utils.join;
+
 public class ErrorUtils {
     public static void exitWithError(String message) {
         System.out.println(message);
@@ -30,7 +32,7 @@ public class ErrorUtils {
     }
 
     public static void checkFileExists(String fileName) {
-        if (!Repository.CWD.exists()) {
+        if (!join(Repository.CWD, fileName).exists()) {
             exitWithError("File does not exist.");
         }
     }

@@ -5,7 +5,7 @@ import static gitlet.ErrorUtils.*;
 import static gitlet.MyUtils.*;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author Aron
  */
 public class Main {
 
