@@ -129,7 +129,7 @@ public class MyUtils {
         for (var name : conflicts) {
             var blobId1 = commit1.getBlobId(name);
             var blobId2 = commit2.getBlobId(name);
-            writeConflictedFile(name, blobId1, blobId2);
+            writeConflictedFile(name, blobId1.orElse(""), blobId2.orElse(""));
         }
     }
 

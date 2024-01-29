@@ -75,13 +75,12 @@ public class Repository {
         var blobId = blob.getId();
         var stage = getStagingArea();
         var oldBlobId = commit.getBlobId(fileName);
-        if (blobId.equals(oldBlobId)) {
-            stage.delete(fileName);
-        } else {
+        if (oldBlobId.isEmpty() || !oldBlobId.get().equals(blobId)) {
             blob.save();
             stage.add(fileName, blobId);
+        } else {
+            stage.delete(fileName);
         }
-
         stage.save();
     }
 
@@ -113,14 +112,17 @@ public class Repository {
         var stage = getStagingArea();
         var commit = getCurrentCommit();
         var blobId = commit.getBlobId(fileName);
-        if (blobId.isEmpty() && !stage.contains(fileName)) {
-            exitWithError("No reason to remove the file.");
-        } else if (!blobId.isEmpty()) {
+        blobId.ifPresentOrElse(id -> {
             stage.rm(fileName);
+            stage.save();
             restrictedDelete(join(CWD, fileName));
-        } else {
-            stage.removeFromAdded(fileName);
-        }
+        }, () -> {
+            if (stage.contains(fileName)) {
+                stage.removeFromAdded(fileName);
+            } else {
+                exitWithError("No reason to remove the file.");
+            }
+        });
         stage.save();
     }
 
@@ -210,11 +212,12 @@ public class Repository {
         if (join(Commit.COMMITS_DIR, cid).exists()) {
             var commit = readCommit(cid);
             var blobId = commit.getBlobId(fileName);
-            if (blobId.isEmpty()) {
+            blobId.ifPresentOrElse(id -> {
+                var blob = readBlob(id);
+                writeContents(join(CWD, fileName), blob.getContent());
+            }, () -> {
                 exitWithError("File does not exist in that commit.");
-            }
-            var blob = readBlob(blobId);
-            writeContents(join(CWD, fileName), blob.getContent());
+            });
         } else {
             exitWithError("No commit with that id exists.");
         }
@@ -282,6 +285,7 @@ public class Repository {
     }
 
     public static void merge(String branchName) {
+        /*
         checkInitialized();
         var stage = getStagingArea();
         if (!stage.isEmpty()) {
@@ -312,32 +316,7 @@ public class Repository {
             var curBlobId = curCommit.getBlobId(file);
             var giveBlobId = givenCommit.getBlobId(file);
             var splitBlobId = splitPoint.getBlobId(file);
-            if (!splitId.isEmpty()) {
-                if (curBlobId.equals(splitBlobId) && giveBlobId.isEmpty()) {
-                    rm(file);
-                    continue;
-                }
-                if (giveBlobId.equals(splitBlobId) && curBlobId.isEmpty()) {
-                    continue;
-                }
-            }
-            if (splitId.isEmpty()) {
-                if (curBlobId.isEmpty() && !giveBlobId.isEmpty()) {
-                    checkout(givenCommit.getCommitId(), file);
-                    add(file);
-                    continue;
-                }
-            }
-            if (!giveBlobId.equals(splitBlobId) && curBlobId.equals(splitBlobId)) {
-                checkout(givenCommit.getCommitId(), file);
-                add(file);
-                continue;
-            }
-            if ((!curBlobId.equals(splitBlobId) && giveBlobId.equals(splitBlobId))
-                    || curBlobId.equals(giveBlobId)) {
-                continue;
-            }
-            conflicts.add(file);
+
         }
 
         writeConflicts(conflicts, curCommit, givenCommit);
@@ -352,5 +331,6 @@ public class Repository {
         mergeCommit.save();
         stage.clear();
         stage.save();
+         */
     }
 }

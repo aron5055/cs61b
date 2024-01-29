@@ -61,11 +61,11 @@ public class Commit implements Serializable {
         parents.add(parentId);
     }
 
-    public String getBlobId(String name) {
+    public Optional<String> getBlobId(String name) {
         if (blobs == null) {
-            return "";
+            return Optional.empty();
         }
-        return blobs.get(name);
+        return Optional.of(blobs.get(name));
     }
 
     public Map<String, String> getBlobs() {
