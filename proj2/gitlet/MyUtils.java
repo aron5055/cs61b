@@ -81,7 +81,7 @@ public class MyUtils {
         var curBlobs = getCurrentCommit().getBlobs();
         var curFiles = plainFilenamesIn(Repository.CWD);
         for (var name : curFiles) {
-            if (!curBlobs.containsKey(name) && stage.contains(name)) {
+            if (!curBlobs.containsKey(name) && !stage.contains(name)) {
                 exitWithError("There is an untracked file in the way; "
                         + "delete it, or add and commit it first.");
             }
