@@ -117,12 +117,12 @@ public class Repository {
             stage.save();
             restrictedDelete(join(CWD, fileName));
         }, () -> {
-            if (stage.contains(fileName)) {
-                stage.removeFromAdded(fileName);
-            } else {
-                exitWithError("No reason to remove the file.");
-            }
-        });
+                if (stage.contains(fileName)) {
+                    stage.removeFromAdded(fileName);
+                } else {
+                    exitWithError("No reason to remove the file.");
+                }
+            });
         stage.save();
     }
 
@@ -215,9 +215,7 @@ public class Repository {
             blobId.ifPresentOrElse(id -> {
                 var blob = readBlob(id);
                 writeContents(join(CWD, fileName), blob.getContent());
-            }, () -> {
-                exitWithError("File does not exist in that commit.");
-            });
+            }, () -> exitWithError("File does not exist in that commit."));
         } else {
             exitWithError("No commit with that id exists.");
         }
@@ -248,14 +246,18 @@ public class Repository {
 
     public static void branch(String branchName) {
         checkInitialized();
-        checkBranchExists(branchName);
+        if (join(HEADS_DIR, branchName).exists()) {
+            exitWithError("A branch with that name already exists.");
+        }
         var commit = getCurrentCommit();
         writeBranch(branchName, commit.getCommitId());
     }
 
     public static void rmBranch(String branchName) {
         checkInitialized();
-        checkBranchExists(branchName);
+        if (!join(Repository.HEADS_DIR, branchName).exists()) {
+            exitWithError("A branch with that name does not exist.");
+        }
         if (readHead().equals(branchName)) {
             exitWithError("Cannot remove the current branch.");
         }
@@ -296,7 +298,6 @@ public class Repository {
         if (curBranch.equals(branchName)) {
             exitWithError("Cannot merge a branch with itself.");
         }
-
         var curCommit = getCurrentCommit();
         var givenCommit = readCommit(getBranchId(branchName));
         var splitPoint = findSplitPoint(curCommit, givenCommit);

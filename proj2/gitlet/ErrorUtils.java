@@ -36,11 +36,5 @@ public class ErrorUtils {
             exitWithError("File does not exist.");
         }
     }
-
-    public static void checkBranchExists(String branchName) {
-        if (!join(Repository.HEADS_DIR, branchName).exists()) {
-            exitWithError("A branch with that name does not exist.");
-        }
-    }
 }
 
