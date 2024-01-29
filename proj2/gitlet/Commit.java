@@ -65,7 +65,7 @@ public class Commit implements Serializable {
         if (blobs == null) {
             return Optional.empty();
         }
-        return Optional.of(blobs.get(name));
+        return Optional.ofNullable(blobs.get(name));
     }
 
     public Map<String, String> getBlobs() {
